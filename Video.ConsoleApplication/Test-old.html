@@ -1,0 +1,113 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <script src="jquery-1.10.2.min.js"></script>
+    <meta name="referrer" content="no-referrer">
+    <title>login</title>
+    <script type="text/javascript">
+
+        $(function () {
+
+            $("#uid").change(function () {
+                $.ajax({
+                    type: "GET",
+                    url: "http://localhost:9000/api/Values/GetList/" + $("#uid").val(),
+                    async: false,
+                    success: function (json, textStatus) {
+                        $("#listHtml").html("");
+                        $("#listHtml").append("status:" + json.status).append("\r\n");
+                        $("#listHtml").append("data.count:").append(json.data.count).append("\r\n");
+                        $("#listHtml").append("data.pages:").append(json.data.pages).append("\r\n\r\n");
+                        for (var i = 0; i < json.data.vlist.length; i++) {
+                            $("#listHtml").append(i).append("\r\n");
+                            $("#listHtml").append(json.data.vlist[i].title).append("\r\n");
+                            $("#listHtml").append(json.data.vlist[i].pic).append("\r\n");
+                            $("#listHtml").append("http://www.bilibili.com/video/av");
+                            $("#listHtml").append(json.data.vlist[i].aid).append("\r\n\r\n");
+
+                            parseVideoJsonp(1, json.data.vlist[i].aid);
+                        }
+                    }
+                });
+            });
+
+
+            $("#download").click(function () {
+                //$.ajax({
+                //    type: "GET",
+                //    url: "http://localhost:9000/api/Values/Download/" + $("#uid").val(),
+                //    async: false,
+                //    success: function (json, textStatus) {
+                //        var int = self.setInterval("GetStatus()", 1000);
+                //    }
+                //});
+
+                $.ajax({
+                    type: "POST",
+                    url: "http://localhost:9000/api/Values/Download/",
+                    data: { Body: $("#url").val() },// $("#uid").val(),
+                    async: false,
+                    success: function (json, textStatus) {
+                        var int = self.setInterval("GetStatus()", 5000);
+                    }
+                });
+            });
+
+
+
+            $("#downloadByFile").click(function () {
+                $.ajax({
+                    type: "GET",
+                    url: "http://localhost:9000/api/Values/DownloadByFile/" + $("#uid").val(),
+                    async: false,
+                    success: function (json, textStatus) {
+                        var int = self.setInterval("GetStatus()", 5000);
+                    }
+                });
+            });
+        });
+
+
+        function GetStatus() {
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:9000/api/Values/GetStatus/",
+                async: false,
+                success: function (result, textStatus) {
+                    $("#status").html(result);
+                }
+            });
+        }
+
+        var index = 1;
+        function callbackfunction(j) {
+            var img = j.img;
+            var url = j.durl[0].url;
+            
+            $("#url").append(img).append("\r\n");
+            $("#url").append(index++).append("\r\n");
+            $("#url").append(url).append("|\r\n\r\n");
+        }
+
+        function parseVideoJsonp(page, aid) {
+            $.getScript("http://api.bilibili.com/playurl?callback=callbackfunction&aid=" + aid + "&page=" + page + "&platform=html5&quality=1&vtype=mp4&type=jsonp");
+        }
+
+    </script>
+</head>
+<body>
+    <form id="sendForm">
+
+        uid：<input id="uid" name="uid" value="381725653" size="10" /> 
+        <input type="button" id="download" value="download" /> 
+        <input type="button" id="downloadByFile" value="DownloadByFile(d:\urls.txt)" />
+
+        <br /><br />
+        <textarea id="listHtml" style=" width:500px; height:300px;"></textarea>
+        <textarea id="status" style=" width:500px; height:300px;"></textarea><br />
+        <textarea id="url" style=" width:500px; height:300px;"></textarea>
+
+    </form>
+
+</body>
+</html>
